@@ -121,7 +121,7 @@ describe('Build category query filter', () => {
     }
     const build = buildCategoryQueryFilter(params)
     expect(build).toEqual({
-      query: `SELECT * FROM category WHERE LOWER(name) = $1 COLLATE "C" ORDER BY name DESC LIMIT $2`,
+      query: `SELECT * FROM category WHERE LOWER(name) = $1 ORDER BY name DESC LIMIT $2`,
       params: ['express', 2]
     })
   })
@@ -133,7 +133,7 @@ describe('Build category query filter', () => {
     }
     const build = buildCategoryQueryFilter(params)
     expect(build).toEqual({
-      query: `SELECT * FROM category WHERE LOWER(name) = $1 COLLATE "C" ORDER BY active ASC LIMIT $2`,
+      query: `SELECT * FROM category WHERE LOWER(name) = $1 ORDER BY active ASC LIMIT $2`,
       params: ['express', 2]
     })
   })
@@ -145,7 +145,7 @@ describe('Build category query filter', () => {
     }
     const build = buildCategoryQueryFilter(params)
     expect(build).toEqual({
-      query: `SELECT * FROM category WHERE LOWER(name) = $1 COLLATE "C" ORDER BY description ASC LIMIT $2`,
+      query: `SELECT * FROM category WHERE LOWER(name) = $1 ORDER BY description ASC LIMIT $2`,
       params: ['express', 2]
     })
   })

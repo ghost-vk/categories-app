@@ -107,7 +107,6 @@ export const buildCategoryQueryFilter = (queryParams: acceptedParams): queryBuil
     let sortParam = queryParams.sort.replace('-', '')
     sortParam = sortParam !== 'createdDate' ? sortParam : 'created_date'
 
-    queryResult += ' COLLATE "C"'
     queryResult += ` ORDER BY ${sortParam} ${direction}`
   } else {
     queryResult += ' ORDER BY created_date DESC'
@@ -125,7 +124,6 @@ export const buildCategoryQueryFilter = (queryParams: acceptedParams): queryBuil
     if (offset > 0) {
       queryResult += ` OFFSET $${idx}`
       params.push(offset)
-      // idx += 1
     }
   }
 

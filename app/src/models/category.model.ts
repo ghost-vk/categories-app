@@ -130,7 +130,6 @@ class CategoryModel {
       db.query(queryBuild.query, queryBuild.params)
     )
 
-    console.log(dbErr)
     if (dbErr) throw new Error('Select failure.')
 
     if (dbResponse.rows.length === 0) return []
