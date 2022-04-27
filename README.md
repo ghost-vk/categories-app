@@ -2,10 +2,10 @@
 
 ## Table of Contents
 
-- [Задание](#exercise)
-- [Deploy instruction](#deploy)
+- [Задание](#задание)
+- [Deploy instruction](#deploy-instructions)
 
-## Задание {#exersize}
+## Задание
 
 Формат данных - json
 
@@ -78,7 +78,7 @@ type SampleFiltration = {
 
 Фильтры комбинируются с сортировкой и пагинацией (page, pageSize). Учитывать в данных фильтра вероятность инъекций и данные с пробелами. Если в поле модели фильтрации передали только пробелы, то фильтрация не происходит. В таком случае работает запрос по умолчанию.
 
-## Deploy instructions {#deploy}
+## Deploy instructions
 
 1. Change directory to /app
 
