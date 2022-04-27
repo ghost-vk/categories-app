@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: categories_app/db
+    image: ghostvk/categories_app_db
     build: ./db
     container_name: categories_db
     volumes:
@@ -29,7 +29,7 @@ services:
       - db
 
   api:
-    image: categories_app/api
+    image: ghostvk/categories_app_api
     build: ./app
     container_name: categories_api
     ports:
