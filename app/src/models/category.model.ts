@@ -6,7 +6,8 @@ import { categoryFields } from '@src/types/category-fields'
 import { selectCategoryDbResponse } from '@src/types/select-category-db-response'
 import { updateCategoryRequest } from '@src/types/update-category-request'
 import { acceptedParams } from '@src/types/accepted-params'
-import { buildCategoryQueryFilter } from '@helpers/build-category-query-filter'
+import CategoryQueryFilterService from '@services/category-query-filter.service'
+import { ApiError } from '@errors/api.error'
 
 class CategoryModel {
   id: number
@@ -120,14 +121,23 @@ class CategoryModel {
   }
 
   static async find(params: acceptedParams): Promise<CategoryModel[]> {
-    const queryBuild = buildCategoryQueryFilter(params)
+    const queryFilter = new CategoryQueryFilterService(params)
+    const [queryBuildError, queryBuildResult] = queryFilter.make()
 
-    if (typeof queryBuild === 'string') throw new Error(queryBuild)
+    if (queryBuildError) {
+      throw new ApiError(
+        400,
+        queryBuildError.message,
+        queryBuildError.errors
+      )
+    }
 
-    console.log('Query:\n', queryBuild)
+    if (!queryBuildResult) throw new Error('Query construct failure.')
+
+    console.log('Query:\n', queryBuildResult.query)
 
     const [dbErr, dbResponse] = await to<selectCategoryDbResponse>(
-      db.query(queryBuild.query, queryBuild.params)
+      db.query(queryBuildResult.query, queryBuildResult.params)
     )
 
     if (dbErr) throw new Error('Select failure.')

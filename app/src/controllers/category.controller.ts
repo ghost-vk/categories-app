@@ -5,36 +5,55 @@ import CategoryModel from '@models/category.model'
 import { ApiError } from '@errors/api.error'
 import { mapValidationErrors } from '@helpers/map-validation-errors'
 
+const HTTP_BAD_REQUEST = 400
+const HTTP_NOT_FOUND = 404
+const HTTP_INTERNAL_ERROR = 500
+
 class CategoryController {
   async getFilteredCategories(req: Request, res: Response, next: NextFunction) {
     const validationErrors = mapValidationErrors(req)
 
     if (validationErrors.length > 0) {
-      return next(new ApiError(403, 'Validation Error', validationErrors))
+      return next(new ApiError(HTTP_BAD_REQUEST, 'Validation Error', validationErrors))
     }
 
     const [err, categories] = await to(CategoryModel.find(req.query))
 
-    if (err) {
-      return next(new ApiError(
-        403, 'Find error',
-        [err.message]
-      ))
-    }
+    if (err) return this.handleFindErrors(err, next)
 
     res.json({ status: 'ok', result: categories })
+  }
+
+  private handleFindErrors(error: Error | ApiError, next: NextFunction) {
+    if (error instanceof ApiError) {
+      return next(
+        new ApiError(
+          error.status,
+          error.message,
+          error.errors
+        )
+      )
+    }
+
+    return next(
+      new ApiError(
+        HTTP_INTERNAL_ERROR,
+        'Unhandled find categories error.',
+        [error.message]
+      )
+    )
   }
 
   async getCategory(req: Request, res: Response, next: NextFunction) {
     const validationErrors = mapValidationErrors(req)
 
     if (validationErrors.length > 0) {
-      return next(new ApiError(403, 'Validation Error', validationErrors))
+      return next(new ApiError(HTTP_BAD_REQUEST, 'Validation Error', validationErrors))
     }
 
     const [err, category] = await to(CategoryModel.findOne(req.params.id))
 
-    if (err) return next(new ApiError(404, 'Category not found.'))
+    if (err) return next(new ApiError(HTTP_NOT_FOUND, 'Category not found.'))
 
     res.json({ status: 'ok', category })
   }
@@ -44,7 +63,7 @@ class CategoryController {
     const validationErrors = mapValidationErrors(req)
 
     if (validationErrors.length > 0) {
-      return next(new ApiError(403, 'Validation Error', validationErrors))
+      return next(new ApiError(HTTP_BAD_REQUEST, 'Validation Error', validationErrors))
     }
 
     const categoryRequest = req.body.category
@@ -54,7 +73,7 @@ class CategoryController {
     )
 
     if (err || !category) {
-      res.status(500).json({ error: err?.message || 'Fail' })
+      res.status(HTTP_INTERNAL_ERROR).json({ error: err?.message || 'Fail' })
       return
     }
 
@@ -65,14 +84,14 @@ class CategoryController {
     const validationErrors = mapValidationErrors(req)
 
     if (validationErrors.length > 0) {
-      return next(new ApiError(403, 'Validation Error', validationErrors))
+      return next(new ApiError(HTTP_BAD_REQUEST, 'Validation Error', validationErrors))
     }
 
     const [err, updatedCategory] = await to<CategoryModel>(
       CategoryModel.update(req.params.id, req.body.category)
     )
 
-    if (err) return next(new ApiError(403, err.message))
+    if (err) return next(new ApiError(HTTP_BAD_REQUEST, err.message))
 
     res.json({ status: 'ok', category: updatedCategory })
   }
@@ -81,14 +100,18 @@ class CategoryController {
     const validationErrors = mapValidationErrors(req)
 
     if (validationErrors.length > 0) {
-      return next(new ApiError(403, 'Validation Error', validationErrors))
+      return next(new ApiError(
+        HTTP_BAD_REQUEST,
+        'Validation Error',
+        validationErrors
+      ))
     }
 
     const [err, deletedCategory] = await to<CategoryModel>(
       CategoryModel.deleteCategory(req.params.id)
     )
 
-    if (err) return next(new ApiError(403, err.message))
+    if (err) return next(new ApiError(HTTP_BAD_REQUEST, err.message))
 
     res.json({ status: 'ok', category: deletedCategory })
   }

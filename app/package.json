@@ -42,7 +42,8 @@
     "@dal": "./dist/dal",
     "@errors": "./dist/errors",
     "@middlewares": "./dist/middlewares",
-    "@helpers": "./dist/helpers"
+    "@helpers": "./dist/helpers",
+    "@services": "./dist/services"
   },
   "nodemonConfig": {
     "ignore": [
