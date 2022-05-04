@@ -1,8 +1,6 @@
 import { acceptedParams } from '@src/types/accepted-params'
 import { queryBuild } from '@src/types/query-build'
 
-// type ErrorMessages = string[]
-
 type CombinationFlag = 'AND ' | 'OR '
 
 class CategoryQueryFilterService {
