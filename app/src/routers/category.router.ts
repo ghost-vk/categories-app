@@ -11,7 +11,7 @@ router.get(
   query('description').optional().isString(),
   query('search').optional().isString(),
   query('page').optional().isInt(),
-  query('pageSize').optional().isInt(),
+  query('pageSize').optional().isInt({ min: 1, max: 9 }),
   query('sort').optional().isString(),
   CategoryController.getFilteredCategories
 )
