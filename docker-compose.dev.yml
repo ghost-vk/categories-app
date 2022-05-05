@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   db:
     image: ghostvk/categories_app_db
@@ -29,9 +28,13 @@ services:
       - db
 
   api:
-    image: ghostvk/categories_app_api
-    build: ./app
+    image: ghostvk/categories_app_app.dev
+    build: 
+      context: ./app
+      dockerfile: Dockerfile.development
     container_name: categories_api
+    volumes:
+      - ./app:/usr/src/app
     ports:
       - '8080:8080'
     environment:
@@ -39,7 +42,7 @@ services:
       POSTGRES_PASSWORD: cat123
       POSTGRES_USER: cat
       POSTGRES_DB: categories
-      POSTGRES_PORT: 5432
+      POSTGRES_PORT: 5432 
       POSTGRES_HOST: db
     depends_on:
       db:
