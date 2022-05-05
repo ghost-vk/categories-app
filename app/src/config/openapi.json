@@ -1,0 +1,550 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "description": "Implementation sample works with database: CRUD + sorted, filtered search. \n\n Technologies stack: Node.js/Express, TypeScript, PostgreSQL, Docker.",
+    "version": "1.1.0",
+    "title": "Categories app"
+  },
+  "tags": [
+    {
+      "name": "categories",
+      "description": "Manage categories, search with filters"
+    }
+  ],
+  "paths": {
+    "/categories": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Fetch categories list",
+        "description": "Returns categories array with filter. Without filters returns two categories (if exists) sorted by 'createdDate'. New categories returns first.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Category name. Will search with complete matching.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "description",
+            "in": "query",
+            "description": "Category description. Will search with complete matching.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search in category name or description. Will search with partial matching. Search by name and description will be combined with OR flag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Records per one page. Available values [1 - 9].",
+            "schema": {
+              "type": "integer",
+              "default": 2,
+              "maximum": 9,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort by provided field. Should be one of available values: 'name', '-name', 'description', '-description', 'active', '-active', 'createdDate', '-createdDate'. Minus (-) means descending.",
+            "schema": {
+              "type": "string",
+              "default": "-createdDate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of categories",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Category"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "categories": {
+                    "value": {
+                      "status": "ok",
+                      "result": [
+                        {
+                          "id": 123,
+                          "slug": "express-js",
+                          "name": "Express",
+                          "description": "Awesome framework",
+                          "createdDate": "2022-01-15T03:24:00",
+                          "active": true
+                        },
+                        {
+                          "id": 124,
+                          "slug": "react-js",
+                          "name": "React",
+                          "description": null,
+                          "createdDate": "2022-02-15T03:24:00",
+                          "active": false
+                        }
+                      ]
+                    }
+                  },
+                  "empty-result": {
+                    "value": {
+                      "status": "ok",
+                      "result": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Handled error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "ValidationError": {
+                    "value": {
+                      "error": "Validation Error",
+                      "errors": [
+                        "Value of 'sort' is not available"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Add a new category",
+        "description": "Fields ID and createdDate will be created automatically. Only 'description' field is optional.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "slug": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succesfull add category. ID and createdDate will be created by server itself.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  }
+                },
+                "examples": {
+                  "add-category": {
+                    "value": {
+                      "status": "ok",
+                      "category": {
+                        "id": 123,
+                        "slug": "express-js",
+                        "name": "Express",
+                        "description": "Awesome framework",
+                        "createdDate": "2022-01-15T03:24:00",
+                        "active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Handled error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "ValidationError": {
+                    "value": {
+                      "error": "Validation Error",
+                      "errors": [
+                        "Field 'slug' should not be empty",
+                        "Field 'active' shoult be boolean type"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/categories/{categoryID}": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Fetch a category",
+        "description": "Returns category by **ID or Slug**.",
+        "parameters": [
+          {
+            "name": "categoryID",
+            "in": "path",
+            "description": "Unique Category ID. Slug may be used as ID.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfull get category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  }
+                },
+                "examples": {
+                  "categories": {
+                    "value": {
+                      "status": "ok",
+                      "category": {
+                        "id": 123,
+                        "slug": "express-js",
+                        "name": "Express",
+                        "description": "Awesome framework",
+                        "createdDate": "2022-01-15T03:24:00",
+                        "active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Handled error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "ValidationError": {
+                    "value": {
+                      "error": "Validation Error",
+                      "errors": [
+                        "ID should not be empty"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Update a category",
+        "description": "Returns updated category. All fields are optional, but provide at least one is required.",
+        "parameters": [
+          {
+            "name": "categoryID",
+            "in": "path",
+            "description": "Unique Category ID. **Slug is not available here.**",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "object",
+                    "properties": {
+                      "slug": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfull updated category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  }
+                },
+                "examples": {
+                  "categories": {
+                    "value": {
+                      "status": "ok",
+                      "category": {
+                        "id": 123,
+                        "slug": "express-js",
+                        "name": "Express",
+                        "description": "Awesome framework",
+                        "createdDate": "2022-01-15T03:24:00",
+                        "active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Handled error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "ValidationError": {
+                    "value": {
+                      "error": "Validation Error",
+                      "errors": [
+                        "ID should not be empty"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Delete a category",
+        "description": "Returns deleted category.",
+        "parameters": [
+          {
+            "name": "categoryID",
+            "in": "path",
+            "description": "Unique Category ID. **Slug is not available here.**",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfull delete category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "$ref": "#/components/schemas/Category"
+                    }
+                  }
+                },
+                "examples": {
+                  "categories": {
+                    "value": {
+                      "status": "ok",
+                      "category": {
+                        "id": 123,
+                        "slug": "express-js",
+                        "name": "Express",
+                        "description": "Awesome framework",
+                        "createdDate": "2022-01-15T03:24:00",
+                        "active": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Handled error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "ValidationError": {
+                    "value": {
+                      "error": "Validation Error",
+                      "errors": [
+                        "ID should not be empty"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Category": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "createdDate",
+          "active"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
